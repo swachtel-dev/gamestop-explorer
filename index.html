@@ -328,16 +328,28 @@ canvas{width:100%;border-radius:8px}
 <!-- ====== PAGE 0: SHORT SELLING MECHANICS ====== -->
 <section class="page active" id="page-0" role="tabpanel">
 
-<h2>How Short Selling Works</h2>
+<h2>How Stock Trading Works (And How Short Selling Flips It)</h2>
 
-<p>Before you can understand the GameStop squeeze, you need to understand short selling. Most investors make money by buying low and selling high. Short sellers reverse the order: they sell high first, then buy low later. If that sounds strange, the step-through below shows exactly how it works.</p>
+<h3>Buying a Stock: The Normal Way to Invest</h3>
+
+<p>When you buy a stock, you are buying a small ownership stake in a company. If you buy 10 shares of GameStop at $20 per share, you spend $200. You now own those shares. If the price later rises to $50, you can sell for $500, making a $300 profit. If the price falls to $5, you can sell for $50, losing $150. The most you can ever lose is what you paid: $200. Your shares cannot go below $0.</p>
+
+<p>This is called a <strong>long position</strong>: you buy first, hope the price goes up, and sell later. Most investors are long most of the time.</p>
+
+<h3>Short Selling: Betting a Stock Will Fall</h3>
+
+<p>Short selling is the opposite. Instead of buying a stock and hoping it goes up, a short seller bets the stock will go <em>down</em>. The mechanics are unusual. You cannot sell something you do not own, so a short seller has to <strong>borrow</strong> shares from someone who does own them, sell those borrowed shares on the open market, and then buy shares back later to return to the lender.</p>
+
+<p>If the price falls between the time you sell and the time you buy back, you profit. If the price rises, you lose money. And unlike owning a stock (where the worst case is $0), a stock's price can rise without limit, which means <strong>short selling losses are theoretically unlimited</strong>.</p>
+
+<p>The step-through below walks through the mechanics one step at a time. Click through all three tracks: how a short sale works when the seller is right, what happens when the seller is wrong, and what happens when many short sellers are wrong at the same time (a short squeeze).</p>
 
 <h3>Step Through the Mechanics</h3>
-<p>Click through each step to see how shares and cash move between parties.</p>
 
 <div class="track-tabs">
-  <button class="track-tab active" onclick="setTrack('profit')">The Short Sale (Profit)</button>
-  <button class="track-tab" onclick="setTrack('squeeze')">The Short Squeeze (Loss)</button>
+  <button class="track-tab active" onclick="setTrack('profit')">1. Short Sale (Profit)</button>
+  <button class="track-tab" onclick="setTrack('loss')">2. Short Sale (Loss)</button>
+  <button class="track-tab" onclick="setTrack('squeeze')">3. The Short Squeeze</button>
 </div>
 
 <div class="step-container" id="step-container">
@@ -353,22 +365,53 @@ canvas{width:100%;border-radius:8px}
   </div>
 </div>
 
-<h3>Why Short Interest Matters</h3>
+<h3>Key Terms So Far</h3>
 
-<p><strong>Short interest</strong> is the total number of shares currently sold short, usually expressed as a percentage of the float (shares available for public trading). Typical short interest is 2-5%. Above 20% is considered high. GameStop's short interest in January 2021 exceeded 140%.</p>
+<ul>
+  <li><strong>Long position:</strong> Buying a stock and holding it, hoping the price rises. Your maximum loss is what you paid.</li>
+  <li><strong>Short position:</strong> Borrowing and selling a stock you do not own, hoping to buy it back cheaper. Your potential loss is unlimited.</li>
+  <li><strong>Covering:</strong> When a short seller buys shares to return to the lender, closing out their position. If the price has risen, covering means buying at a loss.</li>
+  <li><strong>Margin call:</strong> When your broker demands you deposit more cash because your losses are growing. If you cannot meet the margin call, the broker can force you to close your position immediately.</li>
+  <li><strong>Short interest:</strong> The total number of shares currently sold short, usually shown as a percentage of the <strong>float</strong> (the shares available to be publicly traded). If a company has 10 million shares in its float and 2 million are sold short, short interest is 20%.</li>
+</ul>
 
-<p>How can more than 100% of shares be sold short? Because the same share can be borrowed and sold multiple times. When Short Seller A borrows a share from Broker X and sells it, the buyer (Investor B) now holds that share. Investor B's broker can lend that same share to Short Seller C, who sells it again. The original share has now been sold short twice. This rehypothecation is legal and common, but at extreme levels it creates a structural vulnerability: if all short sellers need to buy at once, there are not enough shares to go around.</p>
+<h3>Why GameStop's Short Interest Was Extraordinary</h3>
+
+<p>Normal short interest on a stock is 2-5%. Above 20% is considered high. GameStop's short interest in January 2021 was approximately <strong>140%</strong>. That means more shares had been sold short than actually existed in the float.</p>
+
+<p>How is that possible? Because the same share can be borrowed and sold more than once. Here is a simplified example:</p>
+
+<ol>
+  <li>Investor A owns 100 shares and lends them to Short Seller B.</li>
+  <li>Short Seller B sells those 100 shares on the open market. Investor C buys them.</li>
+  <li>Investor C now owns those 100 shares. C's broker lends them to Short Seller D.</li>
+  <li>Short Seller D sells those 100 shares on the open market.</li>
+</ol>
+
+<p>The original 100 shares have now been sold short <em>twice</em>. Short interest on those shares is 200%. This re-lending of borrowed shares is legal and common. But at extreme levels it creates a dangerous situation: if Short Seller B and Short Seller D both need to buy shares at the same time to close their positions, they need 200 shares, but only 100 actually exist in circulation. They are competing with each other for a limited supply, which drives the price up.</p>
 
 <div class="callout warning">
-  <strong>The feedback loop</strong>
-  When short interest is very high and the price starts rising, short sellers face mounting losses on their positions. Some are forced to buy shares to close their positions (called "covering"). But their buying pushes the price up further, which forces more short sellers to cover, which pushes the price up more. This reflexive cycle is a short squeeze. The higher the short interest, the more explosive the feedback loop.
+  <strong>The short squeeze feedback loop</strong>
+  When short interest is very high and the price starts rising, short sellers start losing money. Their brokers issue margin calls, forcing them to either add cash or close their positions by buying shares. But their buying pushes the price up further, which triggers margin calls for other short sellers, who also have to buy, which pushes the price up more. Each round of forced buying triggers the next round. This self-reinforcing cycle is called a <strong>short squeeze</strong>. The higher the short interest, the more violent the squeeze.
 </div>
 
-<h3>The Gamma Ramp</h3>
+<h3>One More Amplifier: The Options Effect</h3>
 
-<p>Options trading adds another feedback loop. When retail investors buy call options (bets that the price will rise), market makers who sell those options must hedge by buying shares of the underlying stock. As the price rises, market makers must buy more shares to stay hedged (this is called "delta hedging"). Their buying pushes the price up further, triggering more call buying, more hedging, more buying. This options-driven feedback loop is called a <strong>gamma ramp</strong> or <strong>gamma squeeze</strong>.</p>
+<p>There is one more piece of the GameStop story you need to understand, and it comes from options trading. You do not need to understand options in depth, but you need to know one thing about how they work.</p>
 
-<p>In the GameStop squeeze, the gamma ramp amplified the short squeeze. Retail investors were buying both shares and call options, creating two simultaneous feedback loops: forced short covering AND forced market-maker hedging.</p>
+<p>A <strong>call option</strong> is a contract that gives you the right to buy a stock at a set price. If you buy a call option on GameStop with a $50 price, and GameStop rises to $300, you can buy at $50 and immediately have a share worth $300. Call options are a way to bet that a stock will rise.</p>
+
+<p>Here is the important part: when someone sells a call option, the seller takes on risk. To manage that risk, the seller (usually a large financial firm called a <strong>market maker</strong>) buys some shares of the stock as a hedge. As the stock price rises, the market maker has to buy <em>more</em> shares to stay hedged. This creates a second feedback loop:</p>
+
+<ol>
+  <li>Retail investors buy call options, betting GameStop will rise.</li>
+  <li>Market makers sell those options and hedge by buying GameStop shares.</li>
+  <li>Their buying pushes the price up.</li>
+  <li>The higher price means market makers need to buy even more shares to stay hedged.</li>
+  <li>More buying pushes the price up further, and the cycle repeats.</li>
+</ol>
+
+<p>This is called a <strong>gamma ramp</strong>. In the GameStop squeeze, the gamma ramp was running simultaneously with the short squeeze, creating two feedback loops at once: short sellers being forced to buy AND market makers being forced to buy. The combination is what drove the stock from $20 to nearly $500 in three weeks.</p>
 
 <div class="page-nav">
   <span></span>
@@ -382,9 +425,9 @@ canvas{width:100%;border-radius:8px}
 
 <h2>The Squeeze: What Happened and What Could Have</h2>
 
-<p>The GameStop squeeze was not random. It was the product of specific structural conditions: extremely high short interest, coordinated retail buying, an options-driven gamma ramp, and ultimately, broker intervention. Change any one of these parameters and the outcome changes dramatically.</p>
+<p>The GameStop squeeze was not random. It was the product of specific conditions: extremely high short interest (140% of the float sold short), coordinated retail buying on r/WallStreetBets, an options-driven feedback loop (the gamma ramp from the previous page), and ultimately, broker intervention that cut off buying. Change any one of these and the outcome changes dramatically.</p>
 
-<p>Select a scenario below to see how different conditions produce different market outcomes. The first scenario shows what actually happened. The rest show counterfactuals: what the data suggests would have happened under different structural conditions.</p>
+<p>Select a scenario below to see how different conditions produce different price paths. The first scenario shows what actually happened using real market data. The rest are counterfactuals: estimates of what would have happened if one condition were different.</p>
 
 <div class="scenarios" id="scenario-cards"></div>
 
@@ -422,11 +465,11 @@ canvas{width:100%;border-radius:8px}
 
 <ul>
   <li><strong>Melvin Capital:</strong> Hedge fund with a large short position in GameStop. Managed approximately $12.5 billion in assets.</li>
-  <li><strong>Citron Research:</strong> Short-selling research firm run by Andrew Left. Published bearish reports on targeted stocks.</li>
-  <li><strong>r/WallStreetBets (WSB):</strong> Reddit community with approximately 2 million members in early January 2021 (growing to 9+ million by month's end). Known for high-risk options trading and irreverent culture.</li>
-  <li><strong>Robinhood:</strong> Commission-free trading platform with approximately 13 million monthly active users. Revenue model: payment for order flow (PFOF), selling retail order flow to market makers.</li>
-  <li><strong>Citadel Securities:</strong> Market maker that executed approximately 47% of U.S. retail equity volume. Also: Citadel LLC (hedge fund) invested $2 billion in Melvin Capital during the squeeze.</li>
-  <li><strong>DTCC (Depository Trust &amp; Clearing Corporation):</strong> Central clearinghouse for U.S. securities. Sets collateral requirements for brokers.</li>
+  <li><strong>Citron Research:</strong> Short-selling research firm run by Andrew Left. Published reports arguing that specific stocks were overvalued (bearish reports), hoping to profit when those stocks declined.</li>
+  <li><strong>r/WallStreetBets (WSB):</strong> Reddit community with approximately 2 million members in early January 2021 (growing to 9+ million by month's end). Known for high-risk trading and irreverent culture.</li>
+  <li><strong>Robinhood:</strong> Commission-free trading platform with approximately 13 million monthly active users. Robinhood does not charge users trading fees. Instead, it makes money through "payment for order flow" (PFOF): when you place a trade on Robinhood, Robinhood routes your order to a large market-making firm (like Citadel Securities), which pays Robinhood for the right to execute that trade.</li>
+  <li><strong>Citadel Securities:</strong> One of the largest market makers in U.S. equities. A market maker is a firm that stands ready to buy or sell a stock at any time, earning a small profit on each transaction. Citadel Securities executed approximately 47% of all U.S. retail stock trades. Separately, Citadel LLC (a hedge fund under the same parent company) invested $2 billion in Melvin Capital during the squeeze.</li>
+  <li><strong>DTCC (Depository Trust &amp; Clearing Corporation):</strong> The central organization that processes and settles U.S. stock trades. When you buy a stock, the trade does not settle instantly; the DTCC handles the transfer of shares and cash between buyer and seller over a period of days. During that settlement period, the DTCC requires brokers to post cash deposits as a guarantee that the trade will complete.</li>
   <li><strong>SEC (Securities and Exchange Commission):</strong> Federal regulator overseeing securities markets.</li>
 </ul>
 
@@ -638,62 +681,84 @@ function showPage(n){
 const tracks={
   profit:[
     {parties:[
-      {label:'Broker (Lender)',value:'100 shares',detail:'Holds shares for a client',hl:true},
-      {label:'Short Seller',value:'$0',detail:'Wants to bet against the stock',hl:false},
-      {label:'Open Market',value:'Price: $50/share',detail:'Current trading price',hl:false}
-    ],arrows:[],text:'<strong>Setup:</strong> A broker holds 100 shares of GameStop for a client. A short seller believes the stock price will fall and wants to profit from that decline. The current market price is $50 per share.'},
+      {label:'Share Owner',value:'100 shares of GME',detail:'Owns the shares outright',hl:true},
+      {label:'Short Seller',value:'No shares, no cash',detail:'Believes GME will fall',hl:false},
+      {label:'Open Market',value:'GME Price: $50',detail:'Current price per share',hl:false}
+    ],arrows:[],text:'<strong>Setup.</strong> Someone owns 100 shares of GameStop (GME), currently trading at $50 per share. A short seller believes GameStop\'s price will fall. The short seller does not own any GameStop shares. To profit from a price decline, they will need to borrow shares, sell them, and buy them back later at a lower price.'},
     {parties:[
-      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'Lent shares, holds a promise',hl:false},
-      {label:'Short Seller',value:'100 borrowed shares',detail:'Must return these eventually',hl:true},
-      {label:'Open Market',value:'Price: $50/share',detail:'',hl:false}
-    ],arrows:[{from:0,to:1}],text:'<strong>Step 1: Borrow.</strong> The short seller borrows 100 shares from the broker. The broker now holds an IOU. The short seller must return these shares at some point in the future, no matter what the price is then. This obligation is the core of the short position.'},
+      {label:'Share Owner',value:'Owed 100 shares',detail:'Lent shares; expects them back',hl:false},
+      {label:'Short Seller',value:'Holding 100 shares',detail:'Borrowed, must return later',hl:true},
+      {label:'Open Market',value:'GME Price: $50',detail:'',hl:false}
+    ],arrows:[{from:0,to:1}],text:'<strong>Step 1: Borrow.</strong> The short seller borrows 100 shares from the share owner (in practice, through a broker). The share owner is promised their shares back at a future date. The short seller now holds 100 shares they do not actually own. They are obligated to return those 100 shares no matter what, regardless of what the price does.'},
     {parties:[
-      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'',hl:false},
-      {label:'Short Seller',value:'$5,000 cash',detail:'Sold 100 × $50',hl:true},
-      {label:'Open Market',value:'Absorbed 100 shares',detail:'Shares sold into the market',hl:false}
-    ],arrows:[{from:1,to:2}],text:'<strong>Step 2: Sell.</strong> The short seller immediately sells the borrowed shares on the open market at $50 each, receiving $5,000 in cash. Those shares are now held by other market participants. The short seller has cash but still owes 100 shares to the broker.'},
+      {label:'Share Owner',value:'Owed 100 shares',detail:'Waiting for shares back',hl:false},
+      {label:'Short Seller',value:'$5,000 in cash',detail:'Sold 100 shares × $50',hl:true},
+      {label:'Open Market',value:'Bought 100 shares',detail:'New buyers now hold them',hl:false}
+    ],arrows:[{from:1,to:2}],text:'<strong>Step 2: Sell.</strong> The short seller immediately sells the 100 borrowed shares on the open market at $50 each, receiving <strong>$5,000 in cash</strong>. Other investors buy those shares, not knowing (or caring) that they were borrowed. The short seller now has $5,000 but still owes 100 shares to the original owner.'},
     {parties:[
-      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'',hl:false},
-      {label:'Short Seller',value:'$5,000 cash',detail:'Waiting for price to drop',hl:false},
-      {label:'Open Market',value:'Price: $20/share',detail:'Price has fallen',hl:true}
-    ],arrows:[],text:'<strong>Step 3: Wait.</strong> Time passes. The stock falls to $20 per share, just as the short seller predicted. The short seller still owes 100 shares to the broker, but now those shares are much cheaper to buy.'},
+      {label:'Share Owner',value:'Owed 100 shares',detail:'',hl:false},
+      {label:'Short Seller',value:'$5,000 in cash',detail:'Watching the price',hl:false},
+      {label:'Open Market',value:'GME Price: $20',detail:'Price fell as predicted',hl:true}
+    ],arrows:[],text:'<strong>Step 3: The price falls.</strong> Weeks pass. GameStop\'s stock drops to $20 per share, just as the short seller expected. The short seller still owes 100 shares, but now those 100 shares only cost $20 each to buy on the open market. This is good news for the short seller.'},
     {parties:[
-      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'',hl:false},
+      {label:'Share Owner',value:'Owed 100 shares',detail:'',hl:false},
       {label:'Short Seller',value:'100 shares + $3,000',detail:'Bought 100 × $20 = $2,000',hl:true},
-      {label:'Open Market',value:'Sold 100 shares at $20',detail:'',hl:false}
-    ],arrows:[{from:2,to:1}],text:'<strong>Step 4: Cover.</strong> The short seller buys 100 shares on the open market at $20 each, spending $2,000 of the original $5,000. This is called "covering" the short position. The short seller now has 100 shares to return and $3,000 remaining.'},
+      {label:'Open Market',value:'Sold 100 shares',detail:'At $20 per share',hl:false}
+    ],arrows:[{from:2,to:1}],text:'<strong>Step 4: Buy back ("cover").</strong> The short seller buys 100 shares on the open market at $20 each, spending $2,000. They now have 100 shares to return plus $3,000 left over from the original $5,000. Buying shares to close out a short position is called <strong>covering</strong>.'},
     {parties:[
-      {label:'Broker (Lender)',value:'100 shares returned ✓',detail:'Position closed',hl:true},
+      {label:'Share Owner',value:'100 shares back ✓',detail:'Loan repaid',hl:true},
       {label:'Short Seller',value:'$3,000 profit ✓',detail:'Sold at $50, bought at $20',hl:true},
       {label:'Open Market',value:'',detail:'',hl:false}
-    ],arrows:[{from:1,to:0}],text:'<strong>Step 5: Return.</strong> The short seller returns 100 shares to the broker, fulfilling the IOU. Profit: sold at $50, bought at $20, so $30 per share × 100 shares = <strong>$3,000 profit</strong>. The short sale is complete. The short seller profited because the stock went down.'}
+    ],arrows:[{from:1,to:0}],text:'<strong>Step 5: Return the shares.</strong> The short seller returns 100 shares to the original owner. The math: sold at $50, bought back at $20, so <strong>$30 profit per share × 100 shares = $3,000 profit</strong>. The short sale worked because the stock went down. The short seller profited from the decline.'}
+  ],
+  loss:[
+    {parties:[
+      {label:'Share Owner',value:'Owed 100 shares',detail:'Lent shares out',hl:false},
+      {label:'Short Seller',value:'$5,000 in cash',detail:'Already sold at $50/share',hl:false},
+      {label:'Open Market',value:'GME Price: $50',detail:'Same starting point',hl:true}
+    ],arrows:[],text:'<strong>Setup.</strong> Same starting position as before. The short seller has borrowed and sold 100 shares at $50, receiving $5,000. They owe 100 shares. But this time, the stock does not fall.'},
+    {parties:[
+      {label:'Share Owner',value:'Owed 100 shares',detail:'',hl:false},
+      {label:'Short Seller',value:'$5,000 in cash',detail:'Paper loss: $3,000',hl:false,neg:true},
+      {label:'Open Market',value:'GME Price: $80',detail:'Price rose instead of fell',hl:true}
+    ],arrows:[],text:'<strong>The price rises.</strong> Instead of falling, GameStop climbs to $80. The short seller still owes 100 shares. If they had to buy now, it would cost $8,000, but they only have $5,000. On paper, they are losing $3,000. Every dollar the price rises is another dollar of loss. Compare this to owning a stock: if you buy at $50 and it drops to $0, you lose $50 per share. But a short seller\'s losses have <strong>no ceiling</strong> because a stock price can rise indefinitely.'},
+    {parties:[
+      {label:'Share Owner',value:'Owed 100 shares',detail:'',hl:false},
+      {label:'Short Seller',value:'Decides to cut losses',detail:'Buys 100 × $80 = $8,000',hl:false,neg:true},
+      {label:'Open Market',value:'Sold 100 shares',detail:'At $80 per share',hl:false}
+    ],arrows:[{from:2,to:1}],text:'<strong>Covering at a loss.</strong> The short seller decides the stock is not going to fall and buys 100 shares at $80 to close the position. Cost: $8,000. They had $5,000 from the original sale, so they need to come up with an additional <strong>$3,000 out of pocket</strong> to cover the difference.'},
+    {parties:[
+      {label:'Share Owner',value:'100 shares back ✓',detail:'Loan repaid',hl:false},
+      {label:'Short Seller',value:'-$3,000 loss',detail:'Sold at $50, bought at $80',hl:false,neg:true},
+      {label:'Open Market',value:'',detail:'',hl:false}
+    ],arrows:[{from:1,to:0}],text:'<strong>The result.</strong> The short seller returns 100 shares and takes a <strong>$3,000 loss</strong> (sold at $50, bought back at $80 = $30 loss per share × 100 shares). This is a normal short sale loss. No squeeze, no drama. The short seller was wrong about the direction of the stock and lost money. This happens every day in financial markets. What makes a <em>squeeze</em> different is what happens when <em>many</em> short sellers are wrong at the same time.'}
   ],
   squeeze:[
     {parties:[
-      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'Shares already lent out',hl:false},
-      {label:'Short Seller',value:'$5,000 cash',detail:'Sold borrowed shares at $50',hl:false},
-      {label:'Open Market',value:'Price: $50/share',detail:'Same starting point',hl:true}
-    ],arrows:[],text:'<strong>Setup:</strong> Same position as before. The short seller has already borrowed and sold 100 shares at $50 each. They hold $5,000 in cash and owe 100 shares. But this time, the price will not cooperate.'},
+      {label:'Thousands of Lenders',value:'Owed millions of shares',detail:'Short interest: 140% of float',hl:false},
+      {label:'Many Short Sellers',value:'Sold at ~$20/share',detail:'Betting GME keeps falling',hl:false},
+      {label:'Open Market',value:'GME Price: $20',detail:'Jan 2021',hl:true}
+    ],arrows:[],text:'<strong>Setup: GameStop in January 2021.</strong> Dozens of hedge funds and other investors have sold short approximately 140% of GameStop\'s available shares. They borrowed and sold these shares at prices around $20, expecting the struggling retail company to keep declining. 140% short interest means more shares are owed than actually exist in circulation. This will matter.'},
     {parties:[
-      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'',hl:false},
-      {label:'Short Seller',value:'$5,000 cash',detail:'Unrealized loss: $5,000',hl:false},
-      {label:'Open Market',value:'Price: $100/share',detail:'Price has doubled',hl:true}
-    ],arrows:[],text:'<strong>The price rises.</strong> Instead of falling, the stock climbs to $100. The short seller still owes 100 shares, but those shares now cost $10,000. They only have $5,000. They are underwater, and every dollar the price rises is another dollar of loss. Unlike a long position where your maximum loss is what you invested, short selling has <strong>theoretically unlimited loss</strong>.'},
+      {label:'Thousands of Lenders',value:'Owed millions of shares',detail:'',hl:false},
+      {label:'Many Short Sellers',value:'Losing money',detail:'Paper losses growing',hl:false,neg:true},
+      {label:'Open Market',value:'GME Price: $65',detail:'r/WallStreetBets buying',hl:true}
+    ],arrows:[],text:'<strong>Retail buying begins.</strong> Retail investors on Reddit\'s r/WallStreetBets start buying GameStop shares and call options in large volume. The stock rises to $65. Short sellers who sold at $20 are now losing $45 per share on paper. Their brokers start getting nervous.'},
     {parties:[
-      {label:'Broker (Lender)',value:'MARGIN CALL',detail:'Demanding more collateral',hl:false,neg:true},
-      {label:'Short Seller',value:'$5,000 cash',detail:'Faces forced liquidation',hl:false,neg:true},
-      {label:'Open Market',value:'Price: $200/share',detail:'Other shorts are covering too',hl:true}
-    ],arrows:[],text:'<strong>The margin call.</strong> The price reaches $200. The short seller\'s broker demands more collateral (a margin call). The short seller must either deposit more cash or close the position by buying shares. Meanwhile, OTHER short sellers are facing the same pressure. Their forced buying pushes the price up further. The feedback loop has begun.'},
+      {label:'Thousands of Lenders',value:'Want shares back',detail:'',hl:false},
+      {label:'Many Short Sellers',value:'Margin calls arriving',detail:'Must add cash or buy shares',hl:false,neg:true},
+      {label:'Open Market',value:'GME Price: $150',detail:'Forced buying begins',hl:true}
+    ],arrows:[],text:'<strong>Margin calls begin.</strong> At $150, brokers start issuing <strong>margin calls</strong>: demands that short sellers deposit more cash to cover their growing losses. A margin call is the broker saying "your losses are getting too large relative to the cash in your account; add more money immediately or we will close your position for you." Some short sellers cannot meet the call. Their brokers begin buying shares to close the positions automatically. This forced buying pushes the price up further.'},
     {parties:[
-      {label:'Broker (Lender)',value:'MARGIN CALL',detail:'',hl:false,neg:true},
-      {label:'Short Seller',value:'Forced to buy at $350',detail:'100 × $350 = $35,000',hl:false,neg:true},
-      {label:'Open Market',value:'Price: $350/share',detail:'Parabolic from forced covering',hl:true}
-    ],arrows:[{from:2,to:1,neg:true}],text:'<strong>Forced covering.</strong> The short seller is forced to buy 100 shares at $350 to close the position. Cost: $35,000. They only received $5,000 when they sold. <strong>Loss: $30,000</strong> on a position that started with $5,000 in proceeds. And their buying at $350 pushed the price even higher for the short sellers still trying to cover.'},
+      {label:'Thousands of Lenders',value:'Want shares back',detail:'',hl:false},
+      {label:'Many Short Sellers',value:'Forced to buy at $300+',detail:'Billions in losses',hl:false,neg:true},
+      {label:'Open Market',value:'GME Price: $350+',detail:'Feedback loop in full effect',hl:true}
+    ],arrows:[{from:2,to:1,neg:true}],text:'<strong>The feedback loop.</strong> This is the squeeze. Short sellers are forced to buy shares to close their positions. But their buying drives the price up. The higher price triggers margin calls for other short sellers, who are also forced to buy. Their buying drives the price up more. Because short interest is 140%, the amount of buying needed to close all positions exceeds the available supply of shares. Short sellers are competing against each other for a limited pool of shares, and every purchase makes the next purchase more expensive. The stock peaks near <strong>$483</strong>.'},
     {parties:[
-      {label:'Broker (Lender)',value:'100 shares returned ✓',detail:'Position closed',hl:false},
-      {label:'Short Seller',value:'-$30,000 loss',detail:'Sold at $50, forced to buy at $350',hl:false,neg:true},
-      {label:'Open Market',value:'Price still elevated',detail:'Until all shorts have covered',hl:false}
-    ],arrows:[{from:1,to:0}],text:'<strong>The damage.</strong> The short seller returns the shares and closes the position at a $30,000 loss. They lost 6x their original proceeds. And this was a single short seller; when short interest is 140% of the float, thousands of positions must cover simultaneously, each one\'s buying making everyone else\'s covering more expensive. <strong>This is a short squeeze.</strong>'}
+      {label:'Thousands of Lenders',value:'Some shares returned',detail:'',hl:false},
+      {label:'Short Sellers',value:'Billions in losses',detail:'Melvin Capital: -53% in Jan',hl:false,neg:true},
+      {label:'Open Market',value:'GME Price: falling',detail:'Buy pressure removed',hl:false}
+    ],arrows:[{from:1,to:0}],text:'<strong>The aftermath.</strong> On January 28, Robinhood and other brokers restricted buying of GameStop (a decision we will examine on later pages). Without new buy pressure, the feedback loop breaks. The price falls. Short sellers who have not yet covered can now buy at lower prices. By mid-February, GameStop is back near $40. Melvin Capital, a hedge fund with a large short position, reported a 53% loss for January. <strong>This is a short squeeze:</strong> a feedback loop where forced buying by short sellers drives the price up, triggering more forced buying, until the pressure is exhausted.'}
   ]
 };
 
@@ -701,7 +766,9 @@ let currentTrack='profit',currentStep=0;
 
 function setTrack(t){
   currentTrack=t;currentStep=0;
-  document.querySelectorAll('.track-tab').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(t==='profit'?'profit':'squeeze')));
+  const tabs=document.querySelectorAll('.track-tab');
+  const idx=t==='profit'?0:t==='loss'?1:2;
+  tabs.forEach((b,i)=>b.classList.toggle('active',i===idx));
   renderStep();
 }
 
