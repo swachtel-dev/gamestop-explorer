@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The GameStop Squeeze: A Data Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf8f4;
+  --surface: #ffffff;
+  --panel: #1a2332;
+  --panel-surface: #243040;
+  --panel-text: #e8edf3;
+  --panel-muted: #8899aa;
+  --text: #1a1a1a;
+  --muted: #6b7264;
+  --accent: #2d6a4f;
+  --accent-bright: #40916c;
+  --accent-light: #f0f7f2;
+  --warm: #f5f0e6;
+  --warm-dark: #e8dfd0;
+  --border: #ddd6c8;
+  --positive: #2d6a4f;
+  --positive-light: #d8f3dc;
+  --negative: #c1121f;
+  --negative-light: #fde8e8;
+  --warning: #b5651d;
+  --warning-light: #fef3e2;
+  --info: #1d4e89;
+  --info-light: #e8f0fb;
+  --gold: #b8860b;
+  --red: #c1121f;
+  --green: #2d6a4f;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.75;
+  font-size:16.5px;
+  -webkit-font-smoothing:antialiased;
+}
+.container{max-width:880px;margin:0 auto;padding:0 1.5rem 4rem}
+
+.site-header{
+  padding:3.5rem 1rem 2rem;
+  text-align:center;
+  position:relative;
+}
+.site-header::after{
+  content:'';display:block;width:60px;height:3px;
+  background:var(--accent);margin:1.5rem auto 0;border-radius:2px;
+}
+.site-header .label{
+  font-size:.7rem;text-transform:uppercase;letter-spacing:.15em;
+  color:var(--muted);font-weight:500;margin-bottom:.5rem;
+}
+.site-header h1{
+  font-family:'Fraunces',serif;font-size:2rem;font-weight:500;
+  font-variation-settings:'opsz' 40;line-height:1.25;color:var(--text);
+  max-width:500px;margin:0 auto;
+}
+.site-header .subtitle{
+  color:var(--muted);font-size:.92rem;margin-top:.75rem;
+  max-width:500px;margin:0 auto;
+}
+
+.tabs{
+  display:flex;gap:0;
+  background:var(--panel);
+  border-radius:12px;
+  margin:2rem 0 0;padding:6px;
+  position:sticky;top:8px;z-index:100;
+  box-shadow:0 4px 20px rgba(0,0,0,.15);
+}
+.tab{
+  flex:1;padding:.7rem .4rem;text-align:center;
+  font-size:.76rem;font-weight:500;
+  color:var(--panel-muted);cursor:pointer;
+  border:none;background:none;border-radius:8px;
+  transition:all .25s ease;letter-spacing:.01em;
+  line-height:1.35;
+}
+.tab:hover{color:var(--panel-text);background:rgba(255,255,255,.06)}
+.tab.active{
+  color:#fff;background:var(--accent);
+  box-shadow:0 2px 8px rgba(45,106,79,.35);
+  font-weight:600;
+}
+.tab .tab-num{
+  font-size:.6rem;text-transform:uppercase;
+  letter-spacing:.08em;opacity:.65;margin-right:.35em;
+}
+
+.page{display:none;padding:2.5rem 0}
+.page.active{display:block;animation:fadeUp .4s ease-out}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+h2{
+  font-family:'Fraunces',serif;font-size:1.55rem;font-weight:500;
+  margin:2.5rem 0 .75rem;padding-bottom:.5rem;
+  border-bottom:2px solid var(--border);
+  font-variation-settings:'opsz' 32;
+}
+h2:first-child{margin-top:0}
+h3{
+  font-family:'Fraunces',serif;font-size:1.1rem;font-weight:500;
+  margin:1.75rem 0 .5rem;color:var(--accent);
+  font-variation-settings:'opsz' 24;
+}
+p{margin-bottom:1rem}
+a{color:var(--accent);text-decoration-color:var(--accent-bright);text-underline-offset:2px}
+a:hover{color:var(--accent-bright)}
+
+.callout{
+  background:var(--warm);border-radius:8px;
+  padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;
+  position:relative;overflow:hidden;
+}
+.callout::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--accent);border-radius:4px 0 0 4px;
+}
+.callout.positive::before{background:var(--positive)}
+.callout.warning::before{background:var(--warning)}
+.callout.negative::before{background:var(--negative)}
+.callout.info::before{background:var(--info)}
+.callout.positive{background:#edf7f0}
+.callout.warning{background:#fef8f0}
+.callout.negative{background:#fde8e8}
+.callout.info{background:#eef4fb}
+.callout strong{display:block;margin-bottom:.25rem;font-family:'Fraunces',serif;font-weight:600;font-size:.98rem}
+ul,ol{margin:.75rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem}
+
+/* Step-through animation */
+.step-container{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:1.5rem;margin:1.5rem 0;overflow:hidden;
+}
+.step-diagram{
+  display:flex;justify-content:center;align-items:center;
+  gap:1rem;padding:1.5rem 0;min-height:200px;position:relative;
+  flex-wrap:wrap;
+}
+.party-box{
+  background:var(--warm);border:2px solid var(--border);border-radius:10px;
+  padding:.8rem 1.2rem;text-align:center;min-width:120px;
+  transition:all .4s ease;position:relative;
+}
+.party-box.highlight{border-color:var(--accent);background:var(--accent-light);box-shadow:0 2px 12px rgba(45,106,79,.15)}
+.party-box.negative-hl{border-color:var(--red);background:var(--negative-light);box-shadow:0 2px 12px rgba(193,18,31,.15)}
+.party-box .party-label{font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.25rem}
+.party-box .party-value{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:600;color:var(--text)}
+.party-box .party-detail{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+
+.arrow{
+  font-size:1.5rem;color:var(--accent);opacity:0;
+  transition:opacity .4s ease, transform .4s ease;
+  transform:translateX(-5px);
+  display:flex;align-items:center;
+}
+.arrow.visible{opacity:1;transform:translateX(0)}
+.arrow.down{transform:rotate(90deg) translateX(-5px)}
+.arrow.down.visible{transform:rotate(90deg) translateX(0)}
+
+.step-narration{
+  background:var(--panel);color:var(--panel-text);border-radius:8px;
+  padding:1rem 1.25rem;margin-top:1rem;font-size:.9rem;
+  line-height:1.6;min-height:70px;
+  transition:opacity .3s ease;
+}
+.step-narration .step-label{
+  font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--panel-muted);margin-bottom:.35rem;
+}
+
+.step-controls{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:1rem;
+}
+.step-btn{
+  padding:.5rem 1.2rem;border-radius:8px;border:none;
+  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;
+  cursor:pointer;transition:all .2s ease;
+}
+.step-btn.primary{background:var(--accent);color:#fff}
+.step-btn.primary:hover{background:var(--accent-bright)}
+.step-btn.secondary{background:var(--warm);color:var(--text);border:1px solid var(--border)}
+.step-btn.secondary:hover{background:var(--warm-dark)}
+.step-btn:disabled{opacity:.35;cursor:default}
+.step-indicator{font-size:.78rem;color:var(--muted)}
+
+.track-tabs{
+  display:flex;gap:.5rem;margin-bottom:1rem;
+}
+.track-tab{
+  padding:.4rem 1rem;border-radius:6px;border:1px solid var(--border);
+  background:var(--bg);font-size:.8rem;font-weight:500;cursor:pointer;
+  transition:all .2s;font-family:'DM Sans',sans-serif;
+}
+.track-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.track-tab:hover:not(.active){background:var(--warm)}
+
+/* Scenario cards & charts */
+.scenarios{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin:1.5rem 0;
+}
+.scenario-card{
+  background:var(--surface);border:2px solid var(--border);border-radius:10px;
+  padding:.9rem;cursor:pointer;transition:all .25s ease;text-align:center;
+}
+.scenario-card:hover{border-color:var(--accent-bright);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.scenario-card.selected{border-color:var(--accent);background:var(--accent-light);box-shadow:0 2px 10px rgba(45,106,79,.12)}
+.scenario-card .sc-num{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.2rem}
+.scenario-card .sc-name{font-family:'Fraunces',serif;font-size:.88rem;font-weight:600;line-height:1.3}
+.scenario-card .sc-tag{
+  display:inline-block;margin-top:.4rem;padding:.15rem .5rem;border-radius:4px;
+  font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+}
+.sc-tag.real{background:var(--info-light);color:var(--info)}
+.sc-tag.counter{background:var(--warning-light);color:var(--warning)}
+.sc-tag.historical{background:var(--accent-light);color:var(--accent)}
+
+.chart-container{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:1.25rem;margin:1.5rem 0;
+}
+.chart-header{
+  display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem;
+}
+.chart-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:600}
+.chart-subtitle{font-size:.78rem;color:var(--muted)}
+canvas{width:100%;border-radius:8px}
+
+.scenario-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin:1rem 0;
+}
+.stat-box{
+  background:var(--warm);border-radius:8px;padding:.7rem;text-align:center;
+}
+.stat-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.2rem}
+.stat-value{font-family:'Fraunces',serif;font-size:1.15rem;font-weight:700}
+.stat-value.up{color:var(--green)}
+.stat-value.down{color:var(--red)}
+
+.scenario-insight{
+  background:var(--panel);color:var(--panel-text);border-radius:8px;
+  padding:1rem 1.25rem;margin:1rem 0;font-size:.88rem;line-height:1.65;
+}
+.scenario-insight strong{color:#fff}
+
+.hidden{display:none}
+
+/* Timeline for Page 3 */
+.timeline{margin:1.5rem 0;position:relative}
+.timeline::before{
+  content:'';position:absolute;left:18px;top:0;bottom:0;width:2px;
+  background:var(--border);
+}
+.tl-event{
+  position:relative;padding-left:48px;margin-bottom:1.5rem;
+}
+.tl-dot{
+  position:absolute;left:10px;top:4px;width:18px;height:18px;
+  border-radius:50%;border:2px solid var(--border);background:var(--surface);
+}
+.tl-dot.major{background:var(--accent);border-color:var(--accent)}
+.tl-dot.crisis{background:var(--red);border-color:var(--red)}
+.tl-dot.regulatory{background:var(--info);border-color:var(--info)}
+.tl-date{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.tl-title{font-weight:600;font-size:.95rem;margin:.15rem 0}
+.tl-detail{font-size:.88rem;color:var(--muted);line-height:1.55}
+.tl-data{
+  display:inline-flex;gap:.75rem;margin-top:.3rem;font-size:.78rem;
+  background:var(--warm);padding:.25rem .6rem;border-radius:4px;
+}
+.tl-data span{font-weight:600}
+
+/* Page nav */
+.page-nav{
+  display:flex;justify-content:space-between;margin-top:3rem;
+  padding-top:1.5rem;border-top:1px solid var(--border);
+}
+.nav-btn{
+  padding:.6rem 1.4rem;border-radius:8px;border:none;
+  font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;
+  cursor:pointer;transition:all .2s ease;
+}
+.nav-btn{background:var(--accent);color:#fff}
+.nav-btn:hover{background:var(--accent-bright)}
+.nav-btn.secondary{background:var(--warm);color:var(--text);border:1px solid var(--border)}
+.nav-btn.secondary:hover{background:var(--warm-dark)}
+
+.site-footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);font-size:.82rem;color:var(--muted)}
+.site-footer ul{list-style:none;padding:0;margin:.5rem 0}
+.site-footer li{margin-bottom:.3rem}
+
+@media(max-width:700px){
+  .scenarios{grid-template-columns:repeat(2,1fr)}
+  .scenario-stats{grid-template-columns:repeat(2,1fr)}
+  .step-diagram{flex-direction:column}
+  .arrow{transform:rotate(90deg) translateX(-5px)}
+  .arrow.visible{transform:rotate(90deg) translateX(0)}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="site-header">
+  <div class="label">Unit 4 Resource</div>
+  <h1>The GameStop Squeeze: A Data Explorer</h1>
+  <p class="subtitle">How a feedback loop in market structure became the most discussed trade of 2021</p>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab active" role="tab" aria-selected="true" onclick="showPage(0)"><span class="tab-num">Mechanics</span>Short Selling</button>
+  <button class="tab" role="tab" aria-selected="false" onclick="showPage(1)"><span class="tab-num">Scenarios</span>The Squeeze</button>
+  <button class="tab" role="tab" aria-selected="false" onclick="showPage(2)"><span class="tab-num">Actors</span>Who Did What</button>
+  <button class="tab" role="tab" aria-selected="false" onclick="showPage(3)"><span class="tab-num">Regulation</span>The Aftermath</button>
+</nav>
+
+<!-- ====== PAGE 0: SHORT SELLING MECHANICS ====== -->
+<section class="page active" id="page-0" role="tabpanel">
+
+<h2>How Short Selling Works</h2>
+
+<p>Before you can understand the GameStop squeeze, you need to understand short selling. Most investors make money by buying low and selling high. Short sellers reverse the order: they sell high first, then buy low later. If that sounds strange, the step-through below shows exactly how it works.</p>
+
+<h3>Step Through the Mechanics</h3>
+<p>Click through each step to see how shares and cash move between parties.</p>
+
+<div class="track-tabs">
+  <button class="track-tab active" onclick="setTrack('profit')">The Short Sale (Profit)</button>
+  <button class="track-tab" onclick="setTrack('squeeze')">The Short Squeeze (Loss)</button>
+</div>
+
+<div class="step-container" id="step-container">
+  <div class="step-diagram" id="step-diagram"></div>
+  <div class="step-narration" id="step-narration">
+    <div class="step-label" id="step-label">Step 0 of 0</div>
+    <div id="step-text"></div>
+  </div>
+  <div class="step-controls">
+    <button class="step-btn secondary" id="step-back" onclick="stepBack()" disabled>← Back</button>
+    <span class="step-indicator" id="step-dots"></span>
+    <button class="step-btn primary" id="step-next" onclick="stepForward()">Next →</button>
+  </div>
+</div>
+
+<h3>Why Short Interest Matters</h3>
+
+<p><strong>Short interest</strong> is the total number of shares currently sold short, usually expressed as a percentage of the float (shares available for public trading). Typical short interest is 2-5%. Above 20% is considered high. GameStop's short interest in January 2021 exceeded 140%.</p>
+
+<p>How can more than 100% of shares be sold short? Because the same share can be borrowed and sold multiple times. When Short Seller A borrows a share from Broker X and sells it, the buyer (Investor B) now holds that share. Investor B's broker can lend that same share to Short Seller C, who sells it again. The original share has now been sold short twice. This rehypothecation is legal and common, but at extreme levels it creates a structural vulnerability: if all short sellers need to buy at once, there are not enough shares to go around.</p>
+
+<div class="callout warning">
+  <strong>The feedback loop</strong>
+  When short interest is very high and the price starts rising, short sellers face mounting losses on their positions. Some are forced to buy shares to close their positions (called "covering"). But their buying pushes the price up further, which forces more short sellers to cover, which pushes the price up more. This reflexive cycle is a short squeeze. The higher the short interest, the more explosive the feedback loop.
+</div>
+
+<h3>The Gamma Ramp</h3>
+
+<p>Options trading adds another feedback loop. When retail investors buy call options (bets that the price will rise), market makers who sell those options must hedge by buying shares of the underlying stock. As the price rises, market makers must buy more shares to stay hedged (this is called "delta hedging"). Their buying pushes the price up further, triggering more call buying, more hedging, more buying. This options-driven feedback loop is called a <strong>gamma ramp</strong> or <strong>gamma squeeze</strong>.</p>
+
+<p>In the GameStop squeeze, the gamma ramp amplified the short squeeze. Retail investors were buying both shares and call options, creating two simultaneous feedback loops: forced short covering AND forced market-maker hedging.</p>
+
+<div class="page-nav">
+  <span></span>
+  <button class="nav-btn" onclick="showPage(1)">Next: The Squeeze Scenarios →</button>
+</div>
+
+</section>
+
+<!-- ====== PAGE 1: SCENARIO COMPARISONS ====== -->
+<section class="page" id="page-1" role="tabpanel">
+
+<h2>The Squeeze: What Happened and What Could Have</h2>
+
+<p>The GameStop squeeze was not random. It was the product of specific structural conditions: extremely high short interest, coordinated retail buying, an options-driven gamma ramp, and ultimately, broker intervention. Change any one of these parameters and the outcome changes dramatically.</p>
+
+<p>Select a scenario below to see how different conditions produce different market outcomes. The first scenario shows what actually happened. The rest show counterfactuals: what the data suggests would have happened under different structural conditions.</p>
+
+<div class="scenarios" id="scenario-cards"></div>
+
+<div class="chart-container hidden" id="chart-section">
+  <div class="chart-header">
+    <div class="chart-title" id="chart-title">Select a scenario</div>
+    <div class="chart-subtitle" id="chart-subtitle"></div>
+  </div>
+  <canvas id="price-chart" width="820" height="340"></canvas>
+  <div class="scenario-stats" id="scenario-stats"></div>
+</div>
+
+<div class="scenario-insight hidden" id="scenario-insight"></div>
+
+<div class="callout info" style="margin-top:2rem">
+  <strong>How to use these scenarios</strong>
+  These are simplified models, not precise predictions. The counterfactual scenarios are based on the structural parameters that drove the squeeze (short interest level, retail coordination, options activity, broker restrictions) and show approximately how the price path would differ. The exact numbers are illustrative; the shapes and relative magnitudes are what matter for analysis.
+</div>
+
+<div class="page-nav">
+  <button class="nav-btn secondary" onclick="showPage(0)">← Short Selling Mechanics</button>
+  <button class="nav-btn" onclick="showPage(2)">Next: Who Did What →</button>
+</div>
+
+</section>
+
+<!-- ====== PAGE 2: ACTORS AND ACTIONS ====== -->
+<section class="page" id="page-2" role="tabpanel">
+
+<h2>Who Did What: A Factual Timeline</h2>
+
+<p>The GameStop squeeze involved several groups of actors whose actions are a matter of public record. This timeline presents what each actor did and when, without characterizing their motivations. The interpretation is yours to make.</p>
+
+<h3>The Key Actors</h3>
+
+<ul>
+  <li><strong>Melvin Capital:</strong> Hedge fund with a large short position in GameStop. Managed approximately $12.5 billion in assets.</li>
+  <li><strong>Citron Research:</strong> Short-selling research firm run by Andrew Left. Published bearish reports on targeted stocks.</li>
+  <li><strong>r/WallStreetBets (WSB):</strong> Reddit community with approximately 2 million members in early January 2021 (growing to 9+ million by month's end). Known for high-risk options trading and irreverent culture.</li>
+  <li><strong>Robinhood:</strong> Commission-free trading platform with approximately 13 million monthly active users. Revenue model: payment for order flow (PFOF), selling retail order flow to market makers.</li>
+  <li><strong>Citadel Securities:</strong> Market maker that executed approximately 47% of U.S. retail equity volume. Also: Citadel LLC (hedge fund) invested $2 billion in Melvin Capital during the squeeze.</li>
+  <li><strong>DTCC (Depository Trust &amp; Clearing Corporation):</strong> Central clearinghouse for U.S. securities. Sets collateral requirements for brokers.</li>
+  <li><strong>SEC (Securities and Exchange Commission):</strong> Federal regulator overseeing securities markets.</li>
+</ul>
+
+<h3>Timeline of Events</h3>
+
+<div class="timeline">
+
+<div class="tl-event">
+  <div class="tl-dot"></div>
+  <div class="tl-date">August 2020</div>
+  <div class="tl-title">Ryan Cohen discloses 9.98% stake in GameStop</div>
+  <div class="tl-detail">The Chewy co-founder files a 13D with the SEC. Some WSB users had been discussing GameStop's deep value and high short interest since mid-2020.</div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot"></div>
+  <div class="tl-date">September – December 2020</div>
+  <div class="tl-title">Short interest climbs above 100% of float</div>
+  <div class="tl-detail">Multiple hedge funds build short positions. GameStop trades between $9 and $20. WSB discussion of the stock increases steadily.</div>
+  <div class="tl-data">Price: <span>$9 – $20</span> &middot; Short Interest: <span>~120-140%</span></div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot major"></div>
+  <div class="tl-date">January 11, 2021</div>
+  <div class="tl-title">Ryan Cohen joins GameStop board</div>
+  <div class="tl-detail">GameStop announces Cohen and two former Chewy executives will join the board. Stock rises on the news. WSB volume on the stock increases sharply.</div>
+  <div class="tl-data">Close: <span>$19.94</span> &middot; Volume: <span>14.9M</span></div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot"></div>
+  <div class="tl-date">January 13, 2021</div>
+  <div class="tl-title">First major price spike</div>
+  <div class="tl-detail">GME closes at $31.40, up 57% in two days. WSB posts about the stock reach the front page of Reddit for the first time.</div>
+  <div class="tl-data">Close: <span>$31.40</span> &middot; Volume: <span>144M</span></div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot"></div>
+  <div class="tl-date">January 19, 2021</div>
+  <div class="tl-title">Citron announces short presentation</div>
+  <div class="tl-detail">Andrew Left tweets that Citron Research will livestream "5 reasons GameStop is going back to $20." WSB treats this as a challenge.</div>
+  <div class="tl-data">Close: <span>$39.36</span></div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot major"></div>
+  <div class="tl-date">January 22, 2021</div>
+  <div class="tl-title">WSB momentum accelerates</div>
+  <div class="tl-detail">GME closes at $65.01. Citron's livestream was disrupted and rescheduled. Short sellers begin reporting significant losses. Call option volume surges, triggering gamma hedging by market makers.</div>
+  <div class="tl-data">Close: <span>$65.01</span> &middot; Volume: <span>197M</span></div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot major"></div>
+  <div class="tl-date">January 25, 2021</div>
+  <div class="tl-title">Elon Musk tweets "Gamestonk!!"</div>
+  <div class="tl-detail">GME surges in after-hours trading. Elon Musk's tweet with a link to WSB brings mainstream attention. Chamath Palihapitiya also buys GME call options publicly.</div>
+  <div class="tl-data">Close: <span>$76.79</span> &middot; After-hours: <span>$96.73</span></div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot major"></div>
+  <div class="tl-date">January 26, 2021</div>
+  <div class="tl-title">Melvin Capital receives emergency investment</div>
+  <div class="tl-detail">Citadel LLC and Point72 Asset Management invest $2.75 billion in Melvin Capital to shore up its balance sheet. GME closes at $147.98.</div>
+  <div class="tl-data">Close: <span>$147.98</span> &middot; Volume: <span>178M</span></div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot major"></div>
+  <div class="tl-date">January 27, 2021</div>
+  <div class="tl-title">GameStop reaches all-time high</div>
+  <div class="tl-detail">GME hits an intraday high of approximately $483. Closes at $347.51. The stock has risen over 1,700% in January. Multiple brokers begin restricting trading in after-hours.</div>
+  <div class="tl-data">Intraday High: <span>~$483</span> &middot; Close: <span>$347.51</span> &middot; Volume: <span>93M</span></div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot crisis"></div>
+  <div class="tl-date">January 28, 2021</div>
+  <div class="tl-title">Robinhood restricts buying of GME</div>
+  <div class="tl-detail">Robinhood, Interactive Brokers, and other retail platforms restrict or prohibit purchases of GME (and other "meme stocks"). Users can only sell existing positions. Robinhood CEO Vlad Tenev states the restrictions are due to DTCC clearing deposit requirements increasing from approximately $26 million to $3.7 billion overnight. GME drops sharply.</div>
+  <div class="tl-data">Open: <span>~$265</span> &middot; Low: <span>$112.25</span> &middot; Close: <span>$193.60</span></div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot crisis"></div>
+  <div class="tl-date">January 28, 2021 (same day)</div>
+  <div class="tl-title">DTCC collateral call</div>
+  <div class="tl-detail">The DTCC's subsidiary NSCC issues a $3.7 billion collateral call to Robinhood at 5:11 AM, before market open. Robinhood draws on credit lines and raises emergency capital. After restricting buying, the collateral requirement is reduced to $700 million. Robinhood ultimately raises $3.4 billion in emergency funding over the following days.</div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot"></div>
+  <div class="tl-date">January 29, 2021</div>
+  <div class="tl-title">Partial restrictions remain; stock partially recovers</div>
+  <div class="tl-detail">Robinhood allows limited purchases of GME (up to 1 share, later increased). Stock shows partial recovery. Citron Research announces it will stop publishing short reports and shift to "long" coverage.</div>
+  <div class="tl-data">Close: <span>$325.00</span></div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot"></div>
+  <div class="tl-date">February 1 – 19, 2021</div>
+  <div class="tl-title">Price declines as squeeze unwinds</div>
+  <div class="tl-detail">Without continued buy pressure, GME falls steadily. By February 19 it trades near $40. Melvin Capital reports a 53% loss for January. Short interest drops below 30% as shorts cover their positions during the volatility.</div>
+  <div class="tl-data">Feb 19 Close: <span>$40.59</span> &middot; Short Interest: <span>~25%</span></div>
+</div>
+
+<div class="tl-event">
+  <div class="tl-dot regulatory"></div>
+  <div class="tl-date">February 18, 2021</div>
+  <div class="tl-title">Congressional hearing</div>
+  <div class="tl-detail">House Financial Services Committee holds hearing titled "Game Stopped? Who Wins and Loses When Short Sellers, Social Media, and Retail Investors Collide." Witnesses: Vlad Tenev (Robinhood CEO), Ken Griffin (Citadel), Gabe Plotkin (Melvin Capital), Keith Gill ("Roaring Kitty"/DeepFuckingValue, retail investor), Steve Huffman (Reddit CEO).</div>
+</div>
+
+</div>
+
+<div class="page-nav">
+  <button class="nav-btn secondary" onclick="showPage(1)">← The Squeeze Scenarios</button>
+  <button class="nav-btn" onclick="showPage(3)">Next: The Aftermath →</button>
+</div>
+
+</section>
+
+<!-- ====== PAGE 3: REGULATORY LANDSCAPE ====== -->
+<section class="page" id="page-3" role="tabpanel">
+
+<h2>The Regulatory Aftermath</h2>
+
+<p>The GameStop squeeze triggered intense regulatory debate. Multiple congressional hearings were held, the SEC published a staff report, and various rule changes were proposed. The landscape below summarizes what rules existed before the squeeze, what was proposed afterward, and what actually changed.</p>
+
+<h3>Rules That Existed</h3>
+
+<ul>
+  <li><strong>Regulation SHO (2005):</strong> Requires brokers to locate shares before executing a short sale. Contains a "close-out" requirement for failures to deliver. Includes an exemption for bona fide market makers.</li>
+  <li><strong>Short Interest Reporting:</strong> FINRA requires firms to report short positions twice monthly (settlement dates of the 15th and last business day). Data is published with an 11-day lag. No real-time or daily reporting requirement exists.</li>
+  <li><strong>Payment for Order Flow (PFOF):</strong> Legal under SEC rules. Broker-dealers can route retail orders to market makers in exchange for payment, provided they meet "best execution" obligations.</li>
+  <li><strong>Social Media and Market Manipulation:</strong> SEC Rule 10b-5 prohibits fraud and manipulation. No specific rules address coordination via social media forums. The line between "sharing investment ideas" and "coordinating a pump" is not clearly defined in existing regulation.</li>
+  <li><strong>Clearing and Collateral:</strong> The DTCC sets collateral requirements for clearing members. During periods of high volatility, margin requirements can increase dramatically. There is no cap on how much or how quickly these requirements can change.</li>
+</ul>
+
+<h3>What Was Proposed After the Squeeze</h3>
+
+<ul>
+  <li><strong>Real-time short interest disclosure:</strong> Multiple proposals to require daily or real-time reporting of short positions, replacing the twice-monthly, 11-day-lag system. Supporters argue transparency would reduce the information asymmetry between institutional shorts and retail investors. Opponents argue real-time disclosure would expose trading strategies and reduce the incentive to short, which serves a legitimate price-discovery function.</li>
+  <li><strong>PFOF ban or reform:</strong> SEC Chair Gary Gensler expressed concern about conflicts of interest in payment for order flow. The SEC proposed rules requiring more disclosure about order execution quality. A full ban was discussed but not enacted. Some argued PFOF subsidizes commission-free trading; removing it would reimpose trading costs on retail investors.</li>
+  <li><strong>T+1 settlement:</strong> Reducing the settlement period from T+2 (trade date plus two business days) to T+1. Faster settlement reduces the collateral brokers must post with clearinghouses, which could prevent the liquidity crunch that led to buy restrictions. This was the most broadly supported reform.</li>
+  <li><strong>Gamification restrictions:</strong> Proposals to regulate app design features that encourage frequent trading (confetti animations, push notifications about trending stocks). Limited traction; First Amendment and definitional challenges.</li>
+  <li><strong>Social media monitoring:</strong> Some legislators proposed SEC monitoring of social media for coordinated manipulation. Civil liberties groups and the SEC itself expressed concerns about feasibility and free speech implications.</li>
+</ul>
+
+<h3>What Actually Changed</h3>
+
+<div class="callout info">
+  <strong>The short answer: not much</strong>
+  Most proposals stalled. The one significant structural change was the move to T+1 settlement, which the SEC finalized in February 2023 and implemented in May 2024. PFOF remains legal. Short interest reporting is still twice-monthly. No new rules specifically address social media coordination. The SEC staff report (October 2021) concluded that the squeeze was driven by positive sentiment, not a short squeeze in the traditional sense, and did not recommend major enforcement actions.
+</div>
+
+<p>The SEC's October 2021 <a href="https://www.sec.gov/files/staff-report-equity-options-market-stucture-conditions-early-2021.pdf" target="_blank" rel="noopener">staff report</a> on the GameStop events made several observations:</p>
+
+<ul>
+  <li>GME short interest exceeded 100% of the public float, which is legal but creates fragility.</li>
+  <li>The buying pressure was primarily driven by retail investors, not institutional short covering (though short covering contributed to the volume).</li>
+  <li>Broker restrictions on buying were driven by clearing deposit requirements, not by a desire to protect short sellers.</li>
+  <li>The report did not find evidence of market manipulation by retail investors or collusion between Robinhood and Citadel.</li>
+  <li>The report identified structural concerns (concentrated short interest, clearing system fragility, PFOF conflicts) but stopped short of proposing specific rule changes.</li>
+</ul>
+
+<h3>The Open Questions</h3>
+
+<p>The GameStop squeeze raised questions that remain unresolved:</p>
+
+<ul>
+  <li>Should short interest above a certain threshold (50%? 100%?) trigger mandatory disclosure or position limits?</li>
+  <li>When does sharing investment ideas in a public forum become coordinated market manipulation?</li>
+  <li>Should brokers be allowed to restrict buying (but not selling) during volatility, and if so, under what conditions?</li>
+  <li>Does payment for order flow create an inherent conflict between a broker's fiduciary duty to clients and its revenue model?</li>
+  <li>Is the current clearing infrastructure adequate for the volume and speed of modern retail trading?</li>
+</ul>
+
+<div class="page-nav">
+  <button class="nav-btn secondary" onclick="showPage(2)">← Who Did What</button>
+  <span></span>
+</div>
+
+<footer class="site-footer">
+  <p><strong>Further Reading (Optional)</strong></p>
+  <ul>
+    <li><a href="https://www.sec.gov/files/staff-report-equity-options-market-stucture-conditions-early-2021.pdf" target="_blank" rel="noopener">Staff Report on Equity and Options Market Structure Conditions in Early 2021</a> (SEC)</li>
+    <li><a href="https://www.brookings.edu/articles/the-gamestop-episode-what-happened-and-what-does-it-mean/" target="_blank" rel="noopener">The GameStop Episode: What Happened and What Does It Mean?</a> (Brookings)</li>
+    <li><a href="https://www.newyorkfed.org/research/staff_reports/sr988" target="_blank" rel="noopener">GameStop, Short Squeezes, and Market Microstructure</a> (NY Fed Staff Report)</li>
+  </ul>
+  <p style="margin-top:1rem">FINAN VIII: Future of Finance &middot; Rize Education</p>
+</footer>
+
+</section>
+</div>
+
+<script>
+/* ========== PAGE NAVIGATION ========== */
+function showPage(n){
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',i===n);t.setAttribute('aria-selected',i===n)});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ========== STEP-THROUGH ANIMATION ========== */
+const tracks={
+  profit:[
+    {parties:[
+      {label:'Broker (Lender)',value:'100 shares',detail:'Holds shares for a client',hl:true},
+      {label:'Short Seller',value:'$0',detail:'Wants to bet against the stock',hl:false},
+      {label:'Open Market',value:'Price: $50/share',detail:'Current trading price',hl:false}
+    ],arrows:[],text:'<strong>Setup:</strong> A broker holds 100 shares of GameStop for a client. A short seller believes the stock price will fall and wants to profit from that decline. The current market price is $50 per share.'},
+    {parties:[
+      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'Lent shares, holds a promise',hl:false},
+      {label:'Short Seller',value:'100 borrowed shares',detail:'Must return these eventually',hl:true},
+      {label:'Open Market',value:'Price: $50/share',detail:'',hl:false}
+    ],arrows:[{from:0,to:1}],text:'<strong>Step 1: Borrow.</strong> The short seller borrows 100 shares from the broker. The broker now holds an IOU. The short seller must return these shares at some point in the future, no matter what the price is then. This obligation is the core of the short position.'},
+    {parties:[
+      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'',hl:false},
+      {label:'Short Seller',value:'$5,000 cash',detail:'Sold 100 × $50',hl:true},
+      {label:'Open Market',value:'Absorbed 100 shares',detail:'Shares sold into the market',hl:false}
+    ],arrows:[{from:1,to:2}],text:'<strong>Step 2: Sell.</strong> The short seller immediately sells the borrowed shares on the open market at $50 each, receiving $5,000 in cash. Those shares are now held by other market participants. The short seller has cash but still owes 100 shares to the broker.'},
+    {parties:[
+      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'',hl:false},
+      {label:'Short Seller',value:'$5,000 cash',detail:'Waiting for price to drop',hl:false},
+      {label:'Open Market',value:'Price: $20/share',detail:'Price has fallen',hl:true}
+    ],arrows:[],text:'<strong>Step 3: Wait.</strong> Time passes. The stock falls to $20 per share, just as the short seller predicted. The short seller still owes 100 shares to the broker, but now those shares are much cheaper to buy.'},
+    {parties:[
+      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'',hl:false},
+      {label:'Short Seller',value:'100 shares + $3,000',detail:'Bought 100 × $20 = $2,000',hl:true},
+      {label:'Open Market',value:'Sold 100 shares at $20',detail:'',hl:false}
+    ],arrows:[{from:2,to:1}],text:'<strong>Step 4: Cover.</strong> The short seller buys 100 shares on the open market at $20 each, spending $2,000 of the original $5,000. This is called "covering" the short position. The short seller now has 100 shares to return and $3,000 remaining.'},
+    {parties:[
+      {label:'Broker (Lender)',value:'100 shares returned ✓',detail:'Position closed',hl:true},
+      {label:'Short Seller',value:'$3,000 profit ✓',detail:'Sold at $50, bought at $20',hl:true},
+      {label:'Open Market',value:'',detail:'',hl:false}
+    ],arrows:[{from:1,to:0}],text:'<strong>Step 5: Return.</strong> The short seller returns 100 shares to the broker, fulfilling the IOU. Profit: sold at $50, bought at $20, so $30 per share × 100 shares = <strong>$3,000 profit</strong>. The short sale is complete. The short seller profited because the stock went down.'}
+  ],
+  squeeze:[
+    {parties:[
+      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'Shares already lent out',hl:false},
+      {label:'Short Seller',value:'$5,000 cash',detail:'Sold borrowed shares at $50',hl:false},
+      {label:'Open Market',value:'Price: $50/share',detail:'Same starting point',hl:true}
+    ],arrows:[],text:'<strong>Setup:</strong> Same position as before. The short seller has already borrowed and sold 100 shares at $50 each. They hold $5,000 in cash and owe 100 shares. But this time, the price will not cooperate.'},
+    {parties:[
+      {label:'Broker (Lender)',value:'IOU for 100 shares',detail:'',hl:false},
+      {label:'Short Seller',value:'$5,000 cash',detail:'Unrealized loss: $5,000',hl:false},
+      {label:'Open Market',value:'Price: $100/share',detail:'Price has doubled',hl:true}
+    ],arrows:[],text:'<strong>The price rises.</strong> Instead of falling, the stock climbs to $100. The short seller still owes 100 shares, but those shares now cost $10,000. They only have $5,000. They are underwater, and every dollar the price rises is another dollar of loss. Unlike a long position where your maximum loss is what you invested, short selling has <strong>theoretically unlimited loss</strong>.'},
+    {parties:[
+      {label:'Broker (Lender)',value:'MARGIN CALL',detail:'Demanding more collateral',hl:false,neg:true},
+      {label:'Short Seller',value:'$5,000 cash',detail:'Faces forced liquidation',hl:false,neg:true},
+      {label:'Open Market',value:'Price: $200/share',detail:'Other shorts are covering too',hl:true}
+    ],arrows:[],text:'<strong>The margin call.</strong> The price reaches $200. The short seller\'s broker demands more collateral (a margin call). The short seller must either deposit more cash or close the position by buying shares. Meanwhile, OTHER short sellers are facing the same pressure. Their forced buying pushes the price up further. The feedback loop has begun.'},
+    {parties:[
+      {label:'Broker (Lender)',value:'MARGIN CALL',detail:'',hl:false,neg:true},
+      {label:'Short Seller',value:'Forced to buy at $350',detail:'100 × $350 = $35,000',hl:false,neg:true},
+      {label:'Open Market',value:'Price: $350/share',detail:'Parabolic from forced covering',hl:true}
+    ],arrows:[{from:2,to:1,neg:true}],text:'<strong>Forced covering.</strong> The short seller is forced to buy 100 shares at $350 to close the position. Cost: $35,000. They only received $5,000 when they sold. <strong>Loss: $30,000</strong> on a position that started with $5,000 in proceeds. And their buying at $350 pushed the price even higher for the short sellers still trying to cover.'},
+    {parties:[
+      {label:'Broker (Lender)',value:'100 shares returned ✓',detail:'Position closed',hl:false},
+      {label:'Short Seller',value:'-$30,000 loss',detail:'Sold at $50, forced to buy at $350',hl:false,neg:true},
+      {label:'Open Market',value:'Price still elevated',detail:'Until all shorts have covered',hl:false}
+    ],arrows:[{from:1,to:0}],text:'<strong>The damage.</strong> The short seller returns the shares and closes the position at a $30,000 loss. They lost 6x their original proceeds. And this was a single short seller; when short interest is 140% of the float, thousands of positions must cover simultaneously, each one\'s buying making everyone else\'s covering more expensive. <strong>This is a short squeeze.</strong>'}
+  ]
+};
+
+let currentTrack='profit',currentStep=0;
+
+function setTrack(t){
+  currentTrack=t;currentStep=0;
+  document.querySelectorAll('.track-tab').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(t==='profit'?'profit':'squeeze')));
+  renderStep();
+}
+
+function renderStep(){
+  const steps=tracks[currentTrack];
+  const s=steps[currentStep];
+  const diagram=document.getElementById('step-diagram');
+  let html='';
+  s.parties.forEach((p,i)=>{
+    if(i>0){
+      const arrowData=s.arrows.find(a=>((a.from===i-1&&a.to===i)||(a.from===i&&a.to===i-1)));
+      const vis=arrowData?'visible':'';
+      const dir=arrowData&&arrowData.from>arrowData.to?'←':'→';
+      html+=`<div class="arrow ${vis}">${dir}</div>`;
+    }
+    const hlClass=p.neg?'negative-hl':p.hl?'highlight':'';
+    html+=`<div class="party-box ${hlClass}"><div class="party-label">${p.label}</div><div class="party-value">${p.value}</div>${p.detail?`<div class="party-detail">${p.detail}</div>`:''}</div>`;
+  });
+  diagram.innerHTML=html;
+  document.getElementById('step-label').textContent=`Step ${currentStep+1} of ${steps.length}`;
+  document.getElementById('step-text').innerHTML=s.text;
+  document.getElementById('step-back').disabled=currentStep===0;
+  const nextBtn=document.getElementById('step-next');
+  if(currentStep===steps.length-1){nextBtn.textContent='Done ✓';nextBtn.disabled=true}else{nextBtn.textContent='Next →';nextBtn.disabled=false}
+  let dots='';for(let i=0;i<steps.length;i++){dots+=i===currentStep?'●':'○';if(i<steps.length-1)dots+=' '}
+  document.getElementById('step-dots').textContent=dots;
+}
+
+function stepForward(){if(currentStep<tracks[currentTrack].length-1){currentStep++;renderStep()}}
+function stepBack(){if(currentStep>0){currentStep--;renderStep()}}
+renderStep();
+
+/* ========== SCENARIO COMPARISON ========== */
+const scenarios=[
+  {
+    id:'actual',name:'Actual GameStop',tag:'real',tagText:'Real Data',
+    subtitle:'January 4 – February 19, 2021',
+    params:'SI: 140% · Retail coordination: High · Gamma ramp: Active · Broker restriction: Jan 28',
+    data:[17.25,17.69,18.84,19.94,19.95,20.42,31.40,39.91,35.50,39.36,39.12,43.03,65.01,76.79,147.98,347.51,193.60,325.00,225.00,90.00,92.41,53.50,63.77,52.40,51.10,49.51,46.00,40.69,40.59],
+    labels:['Jan 4','','','Jan 11','','','Jan 13','Jan 14','','Jan 19','','','Jan 22','Jan 25','Jan 26','Jan 27','Jan 28','Jan 29','Feb 1','Feb 2','','','Feb 5','','Feb 10','','','Feb 18','Feb 19'],
+    events:[{idx:3,text:'Cohen joins board'},{idx:9,text:'Citron short call'},{idx:12,text:'WSB momentum'},{idx:15,text:'Peak: ~$483 intraday'},{idx:16,text:'Robinhood restricts buying',crisis:true}],
+    stats:{peak:'$483',peakLabel:'Intraday High',change:'+1,915%',changeLabel:'Jan 4 to Peak',volume:'197M',volumeLabel:'Peak Day Volume',si:'140% → 25%',siLabel:'Short Interest'},
+    insight:'<strong>What happened:</strong> GameStop rose from $17 to a peak near $483 in 23 trading days, driven by the combination of extremely high short interest (140%), coordinated retail buying via WSB, a gamma ramp from call option activity, and forced short covering. The squeeze broke on January 28 when Robinhood and other brokers restricted buying. By mid-February the stock was back near $40. Melvin Capital lost 53% of its assets in January.'
+  },
+  {
+    id:'low-si',name:'Normal Short Interest',tag:'counter',tagText:'Counterfactual',
+    subtitle:'Same retail buying, but SI at 40%',
+    params:'SI: 40% · Retail coordination: High · Gamma ramp: Active · Broker restriction: None needed',
+    data:[17.25,17.69,18.84,19.94,19.95,20.42,26.00,32.50,30.00,33.00,33.50,36.00,42.00,45.50,44.00,41.00,38.00,35.50,33.00,30.00,28.50,27.00,26.00,25.00,24.50,24.00,23.50,22.00,21.00],
+    labels:['Jan 4','','','Jan 11','','','Jan 13','','','Jan 19','','','Jan 22','Jan 25','','','','Jan 29','','','','','Feb 5','','','','','Feb 18','Feb 19'],
+    events:[{idx:3,text:'Cohen joins board'},{idx:12,text:'WSB momentum'},{idx:13,text:'Peak: ~$45'}],
+    stats:{peak:'$45.50',peakLabel:'Peak Price',change:'+164%',changeLabel:'Jan 4 to Peak',volume:'~80M',volumeLabel:'Est. Peak Volume',si:'40% → 28%',siLabel:'Short Interest'},
+    insight:'<strong>What changes:</strong> At 40% short interest (high, but not extreme), the feedback loop is much weaker. Retail buying still pushes the price up, but there is far less forced covering. Short sellers face losses but most can absorb them without margin calls. The gamma ramp is smaller because call volume is lower when the stock is not moving parabolically. The stock approximately triples — a notable move, but nothing resembling a squeeze. <strong>Key insight:</strong> The extreme short interest (140%) was the structural precondition. Without it, the same retail buying produces a fraction of the price movement.'
+  },
+  {
+    id:'no-restriction',name:'No Broker Restriction',tag:'counter',tagText:'Counterfactual',
+    subtitle:'Robinhood does not restrict buying on Jan 28',
+    params:'SI: 140% · Retail coordination: High · Gamma ramp: Active · Broker restriction: None',
+    data:[17.25,17.69,18.84,19.94,19.95,20.42,31.40,39.91,35.50,39.36,39.12,43.03,65.01,76.79,147.98,347.51,420.00,550.00,680.00,520.00,380.00,280.00,200.00,160.00,120.00,95.00,80.00,65.00,55.00],
+    labels:['Jan 4','','','Jan 11','','','Jan 13','','','Jan 19','','','Jan 22','Jan 25','Jan 26','Jan 27','Jan 28','Jan 29','Jan 30-31','','','','Feb 5','','','','','Feb 18','Feb 19'],
+    events:[{idx:3,text:'Cohen joins board'},{idx:12,text:'WSB momentum'},{idx:15,text:'$347 (real peak)'},{idx:18,text:'Est. peak: ~$680'}],
+    stats:{peak:'~$680',peakLabel:'Est. Peak',change:'+3,842%',changeLabel:'Jan 4 to Est. Peak',volume:'~250M+',volumeLabel:'Est. Peak Volume',si:'140% → 15%',siLabel:'Short Interest'},
+    insight:'<strong>What changes:</strong> Without broker restrictions, retail buy pressure continues through January 28 and beyond. The feedback loop — forced covering + gamma hedging + momentum buying — continues until short sellers have fully covered. The estimated peak is significantly higher, but the eventual decline is also sharper because the fundamental price bears no relation to GameStop\'s business value. <strong>Key insight:</strong> The broker restriction on January 28 was the circuit breaker that stopped the feedback loop. Without it, the squeeze runs longer and higher before exhausting itself. This is the core of the regulatory debate: did the restriction protect the system, or did it protect the short sellers at retail investors\' expense?'
+  },
+  {
+    id:'no-gamma',name:'No Options Gamma',tag:'counter',tagText:'Counterfactual',
+    subtitle:'Retail buys shares only, no call options',
+    params:'SI: 140% · Retail coordination: High · Gamma ramp: None · Broker restriction: Jan 28',
+    data:[17.25,17.69,18.84,19.94,19.95,20.42,28.00,34.00,31.00,35.00,36.00,40.00,55.00,68.00,105.00,165.00,120.00,140.00,110.00,70.00,65.00,55.00,48.00,43.00,40.00,38.00,36.00,34.00,33.00],
+    labels:['Jan 4','','','Jan 11','','','Jan 13','','','Jan 19','','','Jan 22','Jan 25','Jan 26','Jan 27','Jan 28','Jan 29','','Feb 2','','','Feb 5','','','','','Feb 18','Feb 19'],
+    events:[{idx:3,text:'Cohen joins board'},{idx:12,text:'WSB momentum'},{idx:15,text:'Peak: ~$165'},{idx:16,text:'Broker restriction',crisis:true}],
+    stats:{peak:'~$165',peakLabel:'Est. Peak',change:'+857%',changeLabel:'Jan 4 to Peak',volume:'~120M',volumeLabel:'Est. Peak Volume',si:'140% → 35%',siLabel:'Short Interest'},
+    insight:'<strong>What changes:</strong> Without the gamma ramp, market makers are not forced to delta-hedge by buying shares. The only upward pressure comes from retail buying and forced short covering. The squeeze still happens (140% SI guarantees that), but the price approximately halves compared to reality. <strong>Key insight:</strong> The gamma ramp was the amplifier. Retail buying and short covering created the initial move; options-driven hedging roughly doubled its magnitude. Most media coverage focused on "Reddit vs. hedge funds" and missed that market makers\' mechanical hedging was a larger contributor to the peak than retail buying alone.'
+  },
+  {
+    id:'no-coordination',name:'High SI, No Coordination',tag:'counter',tagText:'Counterfactual',
+    subtitle:'140% SI exists but no WSB coordination',
+    params:'SI: 140% · Retail coordination: None · Gamma ramp: Minimal · Broker restriction: None needed',
+    data:[17.25,17.69,18.84,19.94,20.50,21.00,22.50,24.00,23.50,25.00,26.00,27.50,30.00,33.00,35.00,38.00,40.00,42.00,43.50,45.00,44.00,42.50,41.00,39.50,38.00,37.00,36.00,35.00,34.50],
+    labels:['Jan 4','','','Jan 11','','','Jan 13','','','Jan 19','','','Jan 22','Jan 25','','','','Jan 29','','','','','Feb 5','','','','','Feb 18','Feb 19'],
+    events:[{idx:3,text:'Cohen joins board'},{idx:12,text:'Gradual price increase'},{idx:17,text:'Peak: ~$45'}],
+    stats:{peak:'~$45',peakLabel:'Est. Peak',change:'+161%',changeLabel:'Jan 4 to Peak',volume:'~30M',volumeLabel:'Est. Peak Volume',si:'140% → 95%',siLabel:'Short Interest'},
+    insight:'<strong>What changes:</strong> High short interest creates potential energy, but without a catalyst it does not discharge. The Cohen board appointment causes a modest rally. Some shorts cover on the fundamental news, reducing SI from 140% to roughly 95%. But there is no gamma ramp, no momentum-driven buying cascade, and no viral social media campaign. The stock gradually appreciates on legitimate business developments. <strong>Key insight:</strong> High SI is necessary but not sufficient for a squeeze. The 140% short interest was the loaded gun. WSB coordination was the trigger. Without both, the squeeze does not happen. This is directly relevant to the regulatory question: should regulation focus on preventing the structural vulnerability (extreme SI) or the triggering event (coordination)?'
+  },
+  {
+    id:'vw-2008',name:'2008 VW Squeeze',tag:'historical',tagText:'Historical',
+    subtitle:'Volkswagen, October 2008',
+    params:'SI: ~13% of float, but Porsche held 74% via options · No retail involvement · No social media',
+    data:[210,215,220,225,230,240,260,280,300,350,400,520,945,517,380,310,280,260,250,240,230,225,220,215,210,205,200,195,190],
+    labels:['','','','Oct 20','','','Oct 24','','Oct 26','Oct 27','','Oct 28','Oct 28 PM','Oct 29','','','','Nov 3','','','','','Nov 10','','','','','Nov 18',''],
+    events:[{idx:3,text:'Porsche discloses 74% stake'},{idx:12,text:'Peak: €945, VW briefly most valuable company on Earth'},{idx:13,text:'Porsche agrees to release 5% of shares'}],
+    stats:{peak:'€945',peakLabel:'Peak Price',change:'+350%',changeLabel:'Pre-squeeze to Peak',volume:'Institutional',volumeLabel:'Buyer Type',si:'~13% free float',siLabel:'Effective SI'},
+    insight:'<strong>What happened:</strong> In October 2008, Porsche disclosed that it had secretly accumulated 74.1% of VW shares through options. The German state of Lower Saxony held another 20%. Only about 6% of shares were freely tradable, but roughly 13% of VW\'s total shares were sold short. Short sellers discovered simultaneously that there were not enough shares available to cover their positions. VW\'s share price spiked from roughly €210 to €945 in two days, briefly making it the most valuable company on Earth by market capitalization. The squeeze ended when Porsche agreed to release 5% of its holdings. <strong>Key comparison:</strong> Both squeezes were driven by the same mechanism (short positions exceeding available float), but the VW squeeze was caused by a single institutional actor (Porsche) secretly cornering the market, while GameStop was driven by thousands of retail investors publicly coordinating. The VW squeeze was faster (2 days vs. 3 weeks) and resolved faster. No regulatory action was taken against Porsche.'
+  }
+];
+
+function renderScenarioCards(){
+  const c=document.getElementById('scenario-cards');
+  scenarios.forEach((s,i)=>{
+    c.innerHTML+=`<div class="scenario-card" onclick="selectScenario(${i})" tabindex="0" role="button"><div class="sc-num">${i===5?'Historical':'Scenario '+(i+1)}</div><div class="sc-name">${s.name}</div><span class="sc-tag ${s.tag}">${s.tagText}</span></div>`;
+  });
+}
+
+function selectScenario(idx){
+  const s=scenarios[idx];
+  document.querySelectorAll('.scenario-card').forEach((c,i)=>c.classList.toggle('selected',i===idx));
+  document.getElementById('chart-section').classList.remove('hidden');
+  document.getElementById('scenario-insight').classList.remove('hidden');
+  document.getElementById('chart-title').textContent=s.name;
+  document.getElementById('chart-subtitle').textContent=s.subtitle;
+
+  // Stats
+  const statsHtml=Object.entries({peak:{v:s.stats.peak,l:s.stats.peakLabel},change:{v:s.stats.change,l:s.stats.changeLabel},volume:{v:s.stats.volume,l:s.stats.volumeLabel},si:{v:s.stats.si,l:s.stats.siLabel}}).map(([k,d])=>{
+    const cls=d.v.startsWith('+')?' up':d.v.startsWith('-')?' down':'';
+    return `<div class="stat-box"><div class="stat-label">${d.l}</div><div class="stat-value${cls}">${d.v}</div></div>`;
+  }).join('');
+  document.getElementById('scenario-stats').innerHTML=statsHtml;
+  document.getElementById('scenario-insight').innerHTML=s.insight;
+
+  drawChart(s);
+}
+
+function drawChart(s){
+  const canvas=document.getElementById('price-chart');
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=canvas.offsetWidth*dpr;
+  canvas.height=340*dpr;
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const W=canvas.offsetWidth,H=340;
+  ctx.clearRect(0,0,W,H);
+
+  const pad={top:25,right:20,bottom:55,left:55};
+  const cW=W-pad.left-pad.right;
+  const cH=H-pad.top-pad.bottom;
+  const data=s.data;
+  const maxVal=Math.max(...data)*1.12;
+  const minVal=Math.min(0,Math.min(...data)*0.9);
+
+  // Grid
+  ctx.strokeStyle='#e8e4dc';ctx.lineWidth=0.5;
+  const gridLines=5;
+  ctx.font='11px DM Sans';ctx.fillStyle='#999';ctx.textAlign='right';
+  for(let i=0;i<=gridLines;i++){
+    const y=pad.top+cH-(i/gridLines)*cH;
+    const val=minVal+(maxVal-minVal)*(i/gridLines);
+    ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(W-pad.right,y);ctx.stroke();
+    ctx.fillText(s.id==='vw-2008'?'€'+Math.round(val):'$'+Math.round(val),pad.left-8,y+4);
+  }
+
+  // X labels
+  ctx.textAlign='center';ctx.fillStyle='#999';
+  data.forEach((v,i)=>{
+    if(s.labels[i]){
+      const x=pad.left+(i/(data.length-1))*cW;
+      ctx.save();ctx.translate(x,H-pad.bottom+15);ctx.rotate(-0.4);
+      ctx.fillText(s.labels[i],0,0);ctx.restore();
+    }
+  });
+
+  // Area fill
+  ctx.beginPath();
+  ctx.moveTo(pad.left,pad.top+cH);
+  data.forEach((v,i)=>{
+    const x=pad.left+(i/(data.length-1))*cW;
+    const y=pad.top+cH-((v-minVal)/(maxVal-minVal))*cH;
+    ctx.lineTo(x,y);
+  });
+  ctx.lineTo(pad.left+cW,pad.top+cH);
+  ctx.closePath();
+  const grad=ctx.createLinearGradient(0,pad.top,0,pad.top+cH);
+  grad.addColorStop(0,'rgba(45,106,79,0.15)');grad.addColorStop(1,'rgba(45,106,79,0.01)');
+  ctx.fillStyle=grad;ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle='#2d6a4f';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';
+  data.forEach((v,i)=>{
+    const x=pad.left+(i/(data.length-1))*cW;
+    const y=pad.top+cH-((v-minVal)/(maxVal-minVal))*cH;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Data points
+  data.forEach((v,i)=>{
+    const x=pad.left+(i/(data.length-1))*cW;
+    const y=pad.top+cH-((v-minVal)/(maxVal-minVal))*cH;
+    ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);
+    ctx.fillStyle='#2d6a4f';ctx.fill();
+  });
+
+  // Event annotations
+  if(s.events){
+    s.events.forEach(e=>{
+      const x=pad.left+(e.idx/(data.length-1))*cW;
+      const y=pad.top+cH-((data[e.idx]-minVal)/(maxVal-minVal))*cH;
+      ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);
+      ctx.fillStyle=e.crisis?'#c1121f':'#1d4e89';ctx.fill();
+      ctx.font='bold 10px DM Sans';ctx.fillStyle=e.crisis?'#c1121f':'#1d4e89';
+      ctx.textAlign='center';
+      const textY=y-12;
+      ctx.fillText(e.text,x,textY<pad.top+10?y+18:textY);
+    });
+  }
+}
+
+renderScenarioCards();
+window.addEventListener('resize',()=>{
+  const sel=document.querySelector('.scenario-card.selected');
+  if(sel){const idx=Array.from(sel.parentNode.children).indexOf(sel);drawChart(scenarios[idx])}
+});
+</script>
+</body>
+</html>
